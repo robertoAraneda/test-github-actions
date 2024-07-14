@@ -19,10 +19,7 @@ app.get("/api/health", (req: Request, res: Response, next: NextFunction) => {
 (req: Request, res: Response) => {
   res.status(200).json({
     message: "Server is running",
-    timestamp: new Date().toISOString(),
-    hrtime: process.hrtime(),
-    cpuUsage: process.cpuUsage(),
-    memoryUsage: process.memoryUsage(),
+    timestamp: new Date().toISOString()
   });
 });
 

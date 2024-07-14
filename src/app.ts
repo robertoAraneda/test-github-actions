@@ -1,4 +1,7 @@
 import express, { Express, NextFunction, Request, Response } from "express";
+import cors from "cors";
+import helmet from "helmet";
+
 
 const app: Express = express();
 
@@ -21,6 +24,13 @@ app.get("/api/health", (req: Request, res: Response, next: NextFunction) => {
     memoryUsage: process.memoryUsage(),
   });
 });
+
+app.use(cors({
+  origin: "*",
+}));
+
+app.use(helmet());
+
 
 app.listen(3000, () => {
  console.log(`App is listening on port 3000`);

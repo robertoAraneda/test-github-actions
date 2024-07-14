@@ -139,14 +139,15 @@
           if: github.event_name == 'pull_request'
           with:
             script: |
-              const output = `#### Docker image pushed to Amazon ECR ` + ${{ steps.build-image.outputs.image }}\`
-              #### Service is running at ${{ steps.get-url.outputs }}\`
+              const output = `#### Docker image pushed to Amazon ECR \`${{ steps.build-image.outputs.image }}\`
+              #### Service is running at \`${{ steps.get-url.outputs }}\`
 
               *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`
 
               *Workflow: \`${{ github.workflow }}\`, Action: \`${{ github.event.action }}\`
 
-              *[View Run Details](${{ github.event.pull_request.html_url }}/checks)`
+              *[View Run Details]( \`${{ github.event.pull_request.html_url }}/checks)\`
+              `;
 
               github.issues.createComment({
                 issue_number: context.issue.number,

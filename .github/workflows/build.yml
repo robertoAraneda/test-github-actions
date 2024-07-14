@@ -110,7 +110,6 @@
           id: remove-attributes
           run: |
             jq 'del(.compatibilities, .taskDefinitionArn, .requiresAttributes, .revision, .status, .registeredAt, .registeredBy)' aws-task-definition.json > task-definition.json
-            echo "task-definition=$(cat task-definition.json)" >> $GITHUB_OUTPUT
 
         - name: Render Amazon ECS task definition
           id: render-api-container
@@ -141,7 +140,6 @@
           with:
             script: |
               const output = `#### Docker image pushed to Amazon ECR ` + ${{ steps.build-image.outputs.image }}\`
-              #### Task Definition updated and deployed to Amazon ECS `${{ steps.remove-attributes.outputs.task-definition }}\`
               #### Service is running at ${{ steps.get-url.outputs }}\`
 
               *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`

@@ -51,6 +51,14 @@
       name: BuildAndDeploy
       needs: Terraform
       runs-on: ubuntu-latest
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: us-east-2
+        ECS_SERVICE_NAME: ${{ secrets.SERVICE_NAME }}
+        ECS_CLUSTER_NAME: ${{ secrets.CLUSTER_NAME }}
+        REPO_NAME: ${{ secrets.REPO_NAME }}
+        CONTAINER_NAME: github-poc-dev-poc-github
       steps:
         - name: Checkout
           uses: actions/checkout@v4
@@ -58,8 +66,8 @@
         - name: Configure AWS credentials
           uses: aws-actions/configure-aws-credentials@v4
           with:
-            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+            aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
             aws-region: us-east-2
 
         - name: Login to Amazon ECR
@@ -78,7 +86,7 @@
           id: build-image
           env:
             ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-            ECR_REPOSITORY: ${{ secrets.REPO_NAME }}
+            ECR_REPOSITORY: ${{ env.REPO_NAME }}
             IMAGE_TAG: ${{ steps.get-commit-hash.outputs.commit-hash }}-${{ steps.get-timestamp.outputs.timestamp }}
           run: |
             docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
@@ -87,26 +95,29 @@
             echo ${{ steps.build-image.outputs.image }}
 
 
-        # - name: Render Amazon ECS task definition
-        #   id: render-api-container
-        #   uses: aws-actions/amazon-ecs-render-task-definition@v1
-        #   with:
-        #     task-definition: task-definition.json
-        #     container-name: api
-        #     image: ${{ steps.build-image.outputs.image }}
-        #     log-configuration-log-driver: awslogs
-        #     log-configuration-options: |
-        #       awslogs-create-group=true
-        #       awslogs-group=/ecs/api
-        #       awslogs-region=us-east-1
-        #       awslogs-stream-prefix=ecs
+        - name: Download the task definition file from aws
+          run: |
+            aws ecs describe-task-definition --task-definition ${{ env.CONTAINER_NAME }} --query 'taskDefinition' --output json > task-definition.json
 
-        # - name: Deploy Amazon ECS task definition
-        #   id: deploy-api-container
-        #   uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        #   with:
-        #     task-definition: ${{ steps.render-api-container.outputs.task-definition }}
-        #     service: ${{ secrets.SERVICE_NAME }}
-        #     cluster: ${{ secrets.CLUSTER_NAME }}
-        #     wait-for-service-stability: true
-        #     service-stability-period: 180
+        - name: Render Amazon ECS task definition
+          id: render-api-container
+          uses: aws-actions/amazon-ecs-render-task-definition@v1
+          with:
+            task-definition: task-definition.json
+            container-name: ${{ env.CONTAINER_NAME }}
+            image: ${{ steps.build-image.outputs.image }}
+            log-configuration-log-driver: awslogs
+            log-configuration-options: |
+              awslogs-group=/ecs/api
+              awslogs-region=us-east-1
+              awslogs-stream-prefix=ecs
+
+        - name: Deploy Amazon ECS task definition
+          id: deploy-api-container
+          uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+          with:
+            task-definition: ${{ steps.render-api-container.outputs.task-definition }}
+            service: ${{ env.ECS_SERVICE_NAME }}
+            cluster: ${{ env.ECS_CLUSTER_NAME }}
+            wait-for-service-stability: true
+            service-stability-period: 180

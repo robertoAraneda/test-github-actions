@@ -1,4 +1,4 @@
-import express, { Express, Request, Response } from "express";
+import express, { Express, NextFunction, Request, Response } from "express";
 
 const app: Express = express();
 
@@ -6,7 +6,13 @@ app.get("/", (req: Request, res: Response) => {
  res.status(200).json("Hello from the server!!!");
 });
 
-app.get("/api/health", (req: Request, res: Response) => {
+app.get("/api/health", (req: Request, res: Response, next: NextFunction) => {
+  //create log
+  console.log("Health check request received");
+  console.log("Request URL: ", req.url);
+},   
+
+(req: Request, res: Response) => {
   res.status(200).json({
     message: "Server is running",
     timestamp: new Date().toISOString(),
@@ -16,6 +22,6 @@ app.get("/api/health", (req: Request, res: Response) => {
   });
 });
 
-app.listen(4000, () => {
- console.log(`App is listening on port 4000`);
+app.listen(3000, () => {
+ console.log(`App is listening on port 3000`);
 });

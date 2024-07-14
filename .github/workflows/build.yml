@@ -3,6 +3,9 @@
     push:
       branches:
         - master
+    pull_request:
+      branches:
+        - master
   jobs:
     Terraform:
       name: Terraform
@@ -48,6 +51,9 @@
           run: terraform apply -auto-approve tfplan
 
     BuildAndDeploy:
+      permissions:
+        pull-requests: write
+
       name: BuildAndDeploy
       needs: Terraform
       runs-on: ubuntu-latest
@@ -98,10 +104,13 @@
         - name: Download the task definition file from aws
           run: |
             aws ecs describe-task-definition --task-definition ${{ env.CONTAINER_NAME }} --query 'taskDefinition' --output json > aws-task-definition.json
+         
 
         - name: Remove compatibilities, taskDefinitionArn attributes from task-definition.json
+          id: remove-attributes
           run: |
             jq 'del(.compatibilities, .taskDefinitionArn, .requiresAttributes, .revision, .status, .registeredAt, .registeredBy)' aws-task-definition.json > task-definition.json
+            echo "task-definition=$(cat aws-task-definition.json)" >> $GITHUB_OUTPUT
 
         - name: Render Amazon ECS task definition
           id: render-api-container
@@ -119,3 +128,35 @@
             service: ${{ env.ECS_SERVICE_NAME }}
             cluster: ${{ env.ECS_CLUSTER_NAME }}
             wait-for-service-stability: true
+
+        - name: Get the URL of the running service
+          id: get-url
+          run: echo "http://$(aws ecs describe-services --cluster ${{ env.ECS_CLUSTER_NAME }} --services ${{ env.ECS_SERVICE_NAME }} --query 'services[0].networkConfiguration.awsvpcConfiguration.assignPublicIp' --output text).$AWS_DEFAULT_REGION.compute.amazonaws.com"
+
+        - name: Output the URL
+          run: echo "The service is running at ${{ steps.get-url.outputs }}"
+
+        - uses: actions/github-script@v7
+          if: github.event_name == 'pull_request'
+          with:
+            script: |
+              const output = `#### Docker image pushed to Amazon ECR ` + ${{ steps.build-image.outputs.image }}\`
+              #### Task Definition updated and deployed to Amazon ECS `${{ steps.remove-attributes.outputs.task-definition }}\`
+              #### Service is running at ${{ steps.get-url.outputs }}\`
+
+              *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`
+
+              *Workflow: \`${{ github.workflow }}\`, Action: \`${{ github.event.action }}\`
+
+              *[View Run Details](${{ github.event.pull_request.html_url }}/checks)`
+
+              github.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: output
+              })
+
+
+
+          

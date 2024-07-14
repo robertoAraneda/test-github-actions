@@ -55,8 +55,8 @@
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_DEFAULT_REGION: us-east-2
-        ECS_SERVICE_NAME: ${{ secrets.SERVICE_NAME }}
-        ECS_CLUSTER_NAME: ${{ secrets.CLUSTER_NAME }}
+        ECS_SERVICE_NAME: github-poc-dev-poc-github
+        ECS_CLUSTER_NAME: github-poc-dev
         REPO_NAME: ${{ secrets.REPO_NAME }}
         CONTAINER_NAME: github-poc-dev-poc-github
       steps:
@@ -97,7 +97,11 @@
 
         - name: Download the task definition file from aws
           run: |
-            aws ecs describe-task-definition --task-definition ${{ env.CONTAINER_NAME }} --query 'taskDefinition' --output json > task-definition.json
+            aws ecs describe-task-definition --task-definition ${{ env.CONTAINER_NAME }} --query 'taskDefinition' --output json > aws-task-definition.json
+
+        - name: Remove compatibilities, taskDefinitionArn attributes from task-definition.json
+          run: |
+            jq 'del(.compatibilities, .taskDefinitionArn, .requiresAttributes, .revision, .status, .registeredAt, .registeredBy)' aws-task-definition.json > task-definition.json
 
         - name: Render Amazon ECS task definition
           id: render-api-container
@@ -119,5 +123,3 @@
             task-definition: ${{ steps.render-api-container.outputs.task-definition }}
             service: ${{ env.ECS_SERVICE_NAME }}
             cluster: ${{ env.ECS_CLUSTER_NAME }}
-            wait-for-service-stability: true
-            service-stability-period: 180

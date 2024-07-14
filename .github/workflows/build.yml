@@ -130,17 +130,17 @@
 
         - name: Get the URL of the running service
           id: get-url
-          run: echo "http://$(aws elbv2 describe-load-balancers --names github-poc-dev-poc-github --region us-east-2 --query 'LoadBalancers[0].DNSName' --output text)"
+          run: echo "dns_url=http://$(aws elbv2 describe-load-balancers --names github-poc-dev-poc-github --region us-east-2 --query 'LoadBalancers[0].DNSName' --output text) >> $GITHUB_OUTPUT"
 
         - name: Output the URL
-          run: echo "The service is running at ${{ steps.get-url.outputs }}"
+          run: echo "The service is running at ${{ steps.get-url.outputs.dns_url}}"
 
         - uses: actions/github-script@v7
           if: github.event_name == 'pull_request'
           with:
             script: |
               const output = `#### Docker image pushed to Amazon ECR \`${{ steps.build-image.outputs.image }}\`
-              #### Service is running at \`${{ steps.get-url.outputs }}\`
+              #### Service is running at \`${{ steps.get-url.outputs.dns_url }}\`
 
               *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`
 

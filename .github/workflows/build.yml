@@ -110,11 +110,6 @@
             task-definition: task-definition.json
             container-name: ${{ env.CONTAINER_NAME }}
             image: ${{ steps.build-image.outputs.image }}
-            log-configuration-log-driver: awslogs
-            log-configuration-options: |
-              awslogs-group=/ecs/api
-              awslogs-region=us-east-1
-              awslogs-stream-prefix=ecs
 
         - name: Deploy Amazon ECS task definition
           id: deploy-api-container
@@ -123,3 +118,4 @@
             task-definition: ${{ steps.render-api-container.outputs.task-definition }}
             service: ${{ env.ECS_SERVICE_NAME }}
             cluster: ${{ env.ECS_CLUSTER_NAME }}
+            wait-for-service-stability: true

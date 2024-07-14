@@ -5,7 +5,7 @@
 #########
 
 locals {
-  ci_cd_poc_github = "${var.project}-${var.environment}-ci-cd-poc-github"
+  ci_cd_poc_github = "${var.project}-${var.environment}-poc-github"
 }
 
 

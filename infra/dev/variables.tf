@@ -1,7 +1,7 @@
 variable "project" {
   description = "The project name"
   type        = string
-  default     = "node-ts-ci-cd-github-poc"
+  default     = "github-poc"
 }
 
 variable "environment" {

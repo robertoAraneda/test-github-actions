@@ -4,8 +4,44 @@
       branches:
         - master
   jobs:
+    Terraform:
+      name: Terraform
+      runs-on: ubuntu-latest
+      defaults:
+        run:
+          shell: bash
+          # We keep Terraform files in the terraform directory.
+          working-directory: ./infra/dev
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+
+        - name: Setup Terraform with specified version on the runner
+          uses: hashicorp/setup-terraform@v3
+          with:
+            terraform_version: "1.7.0"
+          
+        - name: Terraform fmt
+          id: fmt
+          run: terraform fmt -check
+          continue-on-error: true
+
+        - name: Terraform Init
+          id: init
+          run: terraform init
+
+        - name: Terraform Validate
+          id: validate
+          run: terraform validate -no-color
+
+        - name: Terraform Plan
+          id: plan
+          run: terraform plan -no-color
+          continue-on-error: true
+
     BuildAndDeploy:
       name: BuildAndDeploy
+      needs: Terraform
       runs-on: ubuntu-latest
       steps:
         - name: Checkout
@@ -40,7 +76,6 @@
             docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
             docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
             echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-            //print image var
             echo ${{ steps.build-image.outputs.image }}
 
 

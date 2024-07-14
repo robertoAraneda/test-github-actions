@@ -35,13 +35,13 @@ module "ci_cd_poc_github_task_definition" {
 
   family          = local.ci_cd_poc_github
   container_name  = local.ci_cd_poc_github
-  container_image = "robertoaraneda/node-web-app:latest"
+  container_image = "730335529002.dkr.ecr.us-east-2.amazonaws.com/node-ts-ci-cd-github-poc:439ffaa-2024-07-14-14-52"
   container_ports = [3000]
   memory          = "512"
   cpu             = "256"
 
   log_group_name = "/ecs/${var.project}-${var.environment}/ci_cd_poc_github"
-  
+
   create_task_role = true
   create_execution_role = true
 

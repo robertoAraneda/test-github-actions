@@ -110,7 +110,7 @@
           id: remove-attributes
           run: |
             jq 'del(.compatibilities, .taskDefinitionArn, .requiresAttributes, .revision, .status, .registeredAt, .registeredBy)' aws-task-definition.json > task-definition.json
-            echo "task-definition=$(cat aws-task-definition.json)" >> $GITHUB_OUTPUT
+            echo "task-definition=$(cat task-definition.json)" >> $GITHUB_OUTPUT
 
         - name: Render Amazon ECS task definition
           id: render-api-container

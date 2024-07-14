@@ -69,6 +69,24 @@
         - name: Checkout
           uses: actions/checkout@v4
 
+        - name: Quality check on SonarQube
+          uses: sonarsource/sonarqube-scan-action@master
+          env:
+            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+            SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          with:
+            args: >
+              -Dsonar.projectKey=robertoAraneda_test-github-actions_AZCynos-D0LQ_fj_Qd0z
+              -Dsonar.organization=github-poc
+              -Dsonar.projectName=github-poc
+              -Dsonar.sources=src
+
+        - name: Quality Gate
+          uses: sonarsource/sonarqube-quality-gate-action@master
+          timeout-minutes: 5
+          env:
+            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
         - name: Configure AWS credentials
           uses: aws-actions/configure-aws-credentials@v4
           with:

@@ -13,6 +13,7 @@ app.get("/api/health", (req: Request, res: Response, next: NextFunction) => {
   //create log
   console.log("Health check request received");
   console.log("Request URL: ", req.url);
+  next();
 },   
 
 (req: Request, res: Response) => {

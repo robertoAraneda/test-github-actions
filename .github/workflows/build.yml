@@ -130,7 +130,7 @@
 
         - name: Get the URL of the running service
           id: get-url
-          run: echo "http://$(aws ecs describe-services --cluster ${{ env.ECS_CLUSTER_NAME }} --services ${{ env.ECS_SERVICE_NAME }} --query 'services[0].networkConfiguration.awsvpcConfiguration.assignPublicIp' --output text).$AWS_DEFAULT_REGION.compute.amazonaws.com"
+          run: echo "http://$(aws elbv2 describe-load-balancers --names github-poc-dev-poc-github --region us-east-2 --query 'LoadBalancers[0].DNSName' --output text)"
 
         - name: Output the URL
           run: echo "The service is running at ${{ steps.get-url.outputs }}"

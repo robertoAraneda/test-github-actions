@@ -130,7 +130,7 @@
 
         - name: Get the URL of the running service
           id: get-url
-          run: echo "dns_url=http://$(aws elbv2 describe-load-balancers --names github-poc-dev-poc-github --region us-east-2 --query 'LoadBalancers[0].DNSName' --output text) >> $GITHUB_OUTPUT"
+          run: echo "dns_url=http://$(aws elbv2 describe-load-balancers --names github-poc-dev-poc-github --region us-east-2 --query 'LoadBalancers[0].DNSName' --output text)" >> $GITHUB_OUTPUT
 
         - name: Output the URL
           run: echo "The service is running at ${{ steps.get-url.outputs.dns_url}}"
